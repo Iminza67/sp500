@@ -11,17 +11,22 @@ from visuals.histogram import create_returns_histogram
 
 
 # -------------------------
-# LOAD DATA ONCE
+# LOAD DATA (safe for Azure)
 # -------------------------
 df = load_data()
-
 symbols = sorted(df["Symbol"].unique())
 
 
 # -------------------------
-# APP INIT
+# INIT APP
 # -------------------------
-app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+app = Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.DARKLY],
+    suppress_callback_exceptions=True
+)
+
+server = app.server   # 🔥 REQUIRED for Azure / Gunicorn
 
 
 # -------------------------
@@ -32,9 +37,7 @@ app.layout = dbc.Container([
     html.H1("📊 S&P 500 Analytics Dashboard", className="text-center mt-3"),
     html.Hr(),
 
-    # -------------------------
-    # DROPDOWN
-    # -------------------------
+    # Dropdown
     dbc.Row([
         dbc.Col([
             dcc.Dropdown(
@@ -48,9 +51,7 @@ app.layout = dbc.Container([
 
     html.Br(),
 
-    # -------------------------
-    # CHARTS
-    # -------------------------
+    # Charts
     dbc.Row([
         dbc.Col(dcc.Graph(id="candlestick"), width=6),
         dbc.Col(dcc.Graph(id="volatility"), width=6),
@@ -68,10 +69,9 @@ app.layout = dbc.Container([
 ], fluid=True)
 
 
-# =========================
-# CALLBACKS (ALL HERE)
-# =========================
-
+# -------------------------
+# CALLBACKS
+# -------------------------
 @app.callback(
     Output("candlestick", "figure"),
     Input("symbol", "value")
@@ -113,7 +113,7 @@ def update_histogram(symbol):
 
 
 # -------------------------
-# RUN APP
+# LOCAL RUN ONLY (NOT USED IN AZURE)
 # -------------------------
 if __name__ == "__main__":
     app.run(debug=True)
